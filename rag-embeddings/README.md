@@ -39,6 +39,12 @@ curl -X PUT 'http://localhost:6333/collections/chemistry_book' \
   }'
 ```
 
+Note: you can delete a collection using the following request.
+
+```
+curl -X DELETE 'http://localhost:6333/collections/chemistry_book'
+```
+
 ## Install WasmEdge with GGML plugin
 
 To generate the embeddings, I need to process the text using the fine-tuned LLM. WasmEdge is a extremely lightweight and cross-platform runtime for LLMs. I will use it here.
