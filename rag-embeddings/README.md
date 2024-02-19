@@ -71,7 +71,7 @@ Now, we can run the Wasm app to generate embeddings from a text file [chemistry.
 
 ```
 cp target/wasm32-wasi/release/create_embeddings.wasm .
-wasmedge --dir .:. --nn-preload default:GGML:AUTO:llama-2-7b-chat.Q5_K_M.gguf create_embeddings.wasm --ctx-size 4096  default chemistry_book chemistry.txt
+wasmedge --dir .:. --nn-preload default:GGML:AUTO:llama-2-7b-chat.Q5_K_M.gguf create_embeddings.wasm default chemistry_book chemistry.txt
 ```
 
 
