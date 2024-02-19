@@ -67,10 +67,11 @@ cargo build --target wasm32-wasi --release
 
 ## Generate embeddings
 
-Now, we can run the Wasm app to generate embeddings from a text file [chemistry.txt](chemistry.txt) and save to the Qdrant database.
+Now, we can run the Wasm app to generate embeddings from a text file [chemistry.txt](chemistry.txt) and save to the Qdrant `chemistry_book` collection.
 
 ```
-wasmedge --dir .:. --nn-preload default:GGML:AUTO:llama-2-7b-chat.Q5_K_M.gguf target/wasm32-wasi/release/create_embeddings.wasm --ctx-size 4096  default chemistry chemistry.txt
+cp target/wasm32-wasi/release/create_embeddings.wasm .
+wasmedge --dir .:. --nn-preload default:GGML:AUTO:llama-2-7b-chat.Q5_K_M.gguf create_embeddings.wasm --ctx-size 4096  default chemistry_book chemistry.txt
 ```
 
 
