@@ -44,8 +44,8 @@ curl -X PUT 'http://localhost:6333/collections/chemistry_book' \
 To generate the embeddings, I need to process the text using the fine-tuned LLM. WasmEdge is a extremely lightweight and cross-platform runtime for LLMs. I will use it here.
 
 ```
-curl -sSf https://raw.githubusercontent.com/WasmEdge/WasmEdge/master/utils/install.sh | bash -s -- --plugins wasmedge_rustls
-source $HOME/.wasmedge/env
+curl -sSf https://raw.githubusercontent.com/WasmEdge/WasmEdge/master/utils/install.sh | bash -s -- --plugins wasmedge_rustls wasi_nn-ggml
+source /home/azureuser/.bashrc
 ```
 
 ## Build the program to generate embeddings
