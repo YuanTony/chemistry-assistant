@@ -20,9 +20,23 @@ I choose Qdrant as the vector database to store and manage the knowledge embeddi
 ```
 mkdir qdrant_storage
 
-docker run -p 6333:6333 -p 6334:6334 \
+nohup sudo docker run -d -p 6333:6333 -p 6334:6334 \
     -v $(pwd)/qdrant_storage:/qdrant/storage:z \
     qdrant/qdrant
+```
+
+Add a vector collection called `chemistry_book`.
+
+```
+curl -X PUT 'http://localhost:6333/collections/chemistry_book' \
+  -H 'Content-Type: application/json' \
+  --data-raw '{
+    "vectors": {
+      "size": 4096,
+      "distance": "Cosine",
+      "on_disk": true
+    }
+  }'
 ```
 
 ## Install WasmEdge with GGML plugin
