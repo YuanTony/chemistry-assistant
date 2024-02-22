@@ -58,7 +58,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let client = qdrant::Qdrant::new();
 
     let mut id : u64 = 0;
-    let mut points = Vec::<Point>::new();
     let mut current_section = String::new();
     let file = File::open(file_name)?;
     let reader = BufReader::new(file);
@@ -86,12 +85,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
             }
 
             println!("{} : ID={} Size={}", OffsetDateTime::now_utc(), id, embd_vec.len());
+
+            let mut points = Vec::<Point>::new();
             points.push(Point{
                 id: PointId::Num(id), 
                 vector: embd_vec,
                 payload: json!({"text": current_section}).as_object().map(|m| m.to_owned()),
             });
             id += 1;
+
+            // Upsert each point (you can also batch points for upsert)
+            let r = client.upsert_points(collection_name, points).await;
+            println!("Upsert points result is {:?}", r);
 
             // Start a new section
             current_section.clear();
@@ -102,9 +107,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
             }
         }
     }
-
-    let r = client.upsert_points(collection_name, points).await;
-    println!("Upsert points result is {:?}", r);
 
     Ok(())
 }
