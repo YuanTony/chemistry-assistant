@@ -20,9 +20,29 @@ I choose Qdrant as the vector database to store and manage the knowledge embeddi
 ```
 mkdir qdrant_storage
 
-docker run -p 6333:6333 -p 6334:6334 \
+nohup sudo docker run -d -p 6333:6333 -p 6334:6334 \
     -v $(pwd)/qdrant_storage:/qdrant/storage:z \
     qdrant/qdrant
+```
+
+Add a vector collection called `chemistry_book`.
+
+```
+curl -X PUT 'http://localhost:6333/collections/chemistry_book' \
+  -H 'Content-Type: application/json' \
+  --data-raw '{
+    "vectors": {
+      "size": 4096,
+      "distance": "Cosine",
+      "on_disk": true
+    }
+  }'
+```
+
+Note: you can delete a collection using the following request.
+
+```
+curl -X DELETE 'http://localhost:6333/collections/chemistry_book'
 ```
 
 ## Install WasmEdge with GGML plugin
@@ -30,8 +50,8 @@ docker run -p 6333:6333 -p 6334:6334 \
 To generate the embeddings, I need to process the text using the fine-tuned LLM. WasmEdge is a extremely lightweight and cross-platform runtime for LLMs. I will use it here.
 
 ```
-curl -sSf https://raw.githubusercontent.com/WasmEdge/WasmEdge/master/utils/install.sh | bash -s -- --plugins wasmedge_rustls
-source $HOME/.wasmedge/env
+curl -sSf https://raw.githubusercontent.com/WasmEdge/WasmEdge/master/utils/install.sh | bash -s -- --plugins wasi_nn-ggml
+source /home/azureuser/.bashrc
 ```
 
 ## Build the program to generate embeddings
@@ -53,10 +73,11 @@ cargo build --target wasm32-wasi --release
 
 ## Generate embeddings
 
-Now, we can run the Wasm app to generate embeddings from a text file [chemistry.txt](chemistry.txt) and save to the Qdrant database.
+Now, we can run the Wasm app to generate embeddings from a text file [chemistry.txt](chemistry.txt) and save to the Qdrant `chemistry_book` collection.
 
 ```
-wasmedge --dir .:. --nn-preload default:GGML:AUTO:llama-2-7b-chat.Q5_K_M.gguf target/wasm32-wasi/release/create_embeddings.wasm --ctx-size 4096  default chemistry chemistry.txt
+cp target/wasm32-wasi/release/create_embeddings.wasm .
+wasmedge --dir .:. --nn-preload default:GGML:AUTO:llama-2-7b-chat.Q5_K_M.gguf create_embeddings.wasm default chemistry_book chemistry.txt
 ```
 
 

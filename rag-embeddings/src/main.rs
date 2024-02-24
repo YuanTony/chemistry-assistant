@@ -1,24 +1,10 @@
 use serde_json::{json, Value};
+use time::OffsetDateTime;
 use std::env;
 use std::io::{BufReader, BufRead};
 use std::fs::File;
 use qdrant::*;
 use wasi_nn::{self, GraphExecutionContext};
-
-fn get_options_from_env() -> Value {
-    let mut options = json!({});
-    if let Ok(val) = env::var("ctx_size") {
-        options["ctx-size"] = serde_json::from_str(val.as_str()).unwrap()
-    }
-    if let Ok(val) = env::var("batch_size") {
-        options["batch-size"] = serde_json::from_str(val.as_str()).unwrap()
-    }
-    if let Ok(val) = env::var("threads") {
-        options["threads"] = serde_json::from_str(val.as_str()).unwrap()
-    }
-
-    options
-}
 
 fn set_data_to_context(
     context: &mut GraphExecutionContext,
@@ -45,16 +31,6 @@ fn get_data_from_context(context: &GraphExecutionContext, index: usize) -> Strin
     String::from_utf8_lossy(&output_buffer[..output_size]).to_string()
 }
 
-/*
-fn get_output_from_context(context: &GraphExecutionContext) -> String {
-    get_data_from_context(context, 0)
-}
-
-fn get_metadata_from_context(context: &GraphExecutionContext) -> Value {
-    serde_json::from_str(&get_data_from_context(context, 1)).unwrap()
-}
-*/
-
 fn get_embd_from_context(context: &GraphExecutionContext) -> Value {
     serde_json::from_str(&get_data_from_context(context, 0)).unwrap()
 }
@@ -65,8 +41,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let model_name: &str = &args[1];
     let collection_name: &str = &args[2];
     let file_name: &str = &args[3];
-    let mut options = get_options_from_env();
+    let mut options = json!({});
     options["embedding"] = serde_json::Value::Bool(true);
+    options["ctx-size"] = serde_json::Value::from(4096);
     let ctx_size = options["ctx-size"].as_u64().unwrap();
 
     let graph =
@@ -79,18 +56,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         .expect("Init Context Failed, please check the model");
 
     let client = qdrant::Qdrant::new();
-    // The default size is the ctx size. But you can change it here in the code
-    match client.create_collection(collection_name, ctx_size as u32).await {
-        Ok(_) => {
-            println!("\nSuccessfully created collection");
-        }
-        Err(err) => {
-            println!("\n[ERROR] {}", err);
-        }
-    }
 
     let mut id : u64 = 0;
-    let mut points = Vec::<Point>::new();
     let mut current_section = String::new();
     let file = File::open(file_name)?;
     let reader = BufReader::new(file);
@@ -117,6 +84,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
                 embd_vec.push(embd["embedding"][idx].as_f64().unwrap() as f32);
             }
 
+            println!("{} : ID={} Size={}", OffsetDateTime::now_utc(), id, embd_vec.len());
+
+            let mut points = Vec::<Point>::new();
             points.push(Point{
                 id: PointId::Num(id), 
                 vector: embd_vec,
@@ -124,18 +94,19 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
             });
             id += 1;
 
+            // Upsert each point (you can also batch points for upsert)
+            let r = client.upsert_points(collection_name, points).await;
+            println!("Upsert points result is {:?}", r);
+
             // Start a new section
             current_section.clear();
         } else {
-            if current_section.len() < ctx_size as usize - line.len() {
+            if current_section.len() < ctx_size as usize * 4 - line.len() {
                 current_section.push_str(&line);
                 current_section.push('\n');
             }
         }
     }
-
-    let r = client.upsert_points(collection_name, points).await;
-    println!("Upsert points result is {:?}", r);
 
     Ok(())
 }
