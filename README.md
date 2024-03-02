@@ -16,7 +16,7 @@ In this repo, I provide open-source code and instructions on how I created this 
 
 [Step 1: fine-tune an open-source LLM for the chemistry subject](fine-tune-model/)
 
-[Step 2: create a chemistry knowledge base for RAG](embeddings/)
+[Step 2: create a chemistry knowledge base for RAG](rag-embeddings/)
 
 [Step 3: Deploy an API server](api-server/)
 

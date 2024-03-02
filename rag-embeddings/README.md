@@ -80,4 +80,3 @@ cp target/wasm32-wasi/release/create_embeddings.wasm .
 wasmedge --dir .:. --nn-preload default:GGML:AUTO:llama-2-7b-chat.Q5_K_M.gguf create_embeddings.wasm default chemistry_book chemistry.txt
 ```
 
-
