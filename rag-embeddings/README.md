@@ -32,11 +32,19 @@ curl -X PUT 'http://localhost:6333/collections/chemistry_book' \
   -H 'Content-Type: application/json' \
   --data-raw '{
     "vectors": {
-      "size": 4096,
+      "size": 5120,
       "distance": "Cosine",
       "on_disk": true
     }
   }'
+```
+
+> Note: The 13b model has a vector size 5120. If you are using a 7b model, the vector size should be 4096.
+
+Confirm that the collection is successfully created.
+
+```
+curl 'http://localhost:6333/collections/chemistry_book'
 ```
 
 Note: you can delete a collection using the following request.
@@ -77,6 +85,6 @@ Now, we can run the Wasm app to generate embeddings from a text file [chemistry.
 
 ```
 cp target/wasm32-wasi/release/create_embeddings.wasm .
-wasmedge --dir .:. --nn-preload default:GGML:AUTO:llama-2-7b-chat.Q5_K_M.gguf create_embeddings.wasm default chemistry_book chemistry.txt
+wasmedge --dir .:. --nn-preload default:GGML:AUTO:chemistry-assistant-13b-q5_k_m.gguf create_embeddings.wasm default chemistry_book 5120 chemistry.txt
 ```
 

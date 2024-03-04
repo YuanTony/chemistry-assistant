@@ -21,18 +21,20 @@ fn set_metadata_to_context(
     context.set_input(1, wasi_nn::TensorType::U8, &[1], &data)
 }
 
-fn get_data_from_context(context: &GraphExecutionContext, index: usize) -> String {
-    // Preserve for 4096 tokens with average token length 15
-    const MAX_OUTPUT_BUFFER_SIZE: usize = 4096 * 15 + 128;
-    let mut output_buffer = vec![0u8; MAX_OUTPUT_BUFFER_SIZE];
+fn get_data_from_context(context: &GraphExecutionContext, vector_size: usize, index: usize) -> String {
+    // Preserve for tokens with average token length 15
+    let max_output_buffer_size: usize = vector_size * 15 + 128;
+    let mut output_buffer = vec![0u8; max_output_buffer_size];
     let mut output_size = context.get_output(index, &mut output_buffer).unwrap();
-    output_size = std::cmp::min(MAX_OUTPUT_BUFFER_SIZE, output_size);
+    output_size = std::cmp::min(max_output_buffer_size, output_size);
 
     String::from_utf8_lossy(&output_buffer[..output_size]).to_string()
 }
 
-fn get_embd_from_context(context: &GraphExecutionContext) -> Value {
-    serde_json::from_str(&get_data_from_context(context, 0)).unwrap()
+fn get_embd_from_context(context: &GraphExecutionContext, vector_size: usize) -> Value {
+    let embd = &get_data_from_context(context, vector_size, 0);
+    // println!("\n[EMBED] {}", embd);
+    serde_json::from_str(embd).unwrap()
 }
 
 #[tokio::main(flavor = "current_thread")]
@@ -40,10 +42,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let args: Vec<String> = env::args().collect();
     let model_name: &str = &args[1];
     let collection_name: &str = &args[2];
-    let file_name: &str = &args[3];
+    let vector_size: usize = args[3].trim().parse().unwrap();
+    let file_name: &str = &args[4];
     let mut options = json!({});
     options["embedding"] = serde_json::Value::Bool(true);
-    options["ctx-size"] = serde_json::Value::from(4096);
+    options["ctx-size"] = serde_json::Value::from(vector_size);
     let ctx_size = options["ctx-size"].as_u64().unwrap();
 
     let graph =
@@ -77,7 +80,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
                     println!("\n[ERROR] {}", err);
                 }
             }
-            let embd = get_embd_from_context(&context);
+            let embd = get_embd_from_context(&context, vector_size);
 
             let mut embd_vec = Vec::<f32>::new();
             for idx in 0..ctx_size as usize {
