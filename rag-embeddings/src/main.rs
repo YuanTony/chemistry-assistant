@@ -90,7 +90,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
             points.push(Point{
                 id: PointId::Num(id), 
                 vector: embd_vec,
-                payload: json!({"text": current_section}).as_object().map(|m| m.to_owned()),
+                payload: json!({"source": current_section}).as_object().map(|m| m.to_owned()),
             });
             id += 1;
 
