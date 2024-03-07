@@ -44,6 +44,14 @@ async fn handler(msg: Message) {
         store::set(&channel_id.to_string(), json!(true), None);
         log::info!("Restarted converstion for {}", channel_id);
         return;
+    } else if content.starts_with("/") {
+        _ = discord.send_message(
+            channel_id.into(),
+            &serde_json::json!({
+                "content": "Sorry, I do not recognize this command. Do you mean to say /restart to start a new conversation?"
+            }),
+        ).await;
+        return;
     }
 
     let restart = store::get(&channel_id.to_string())
