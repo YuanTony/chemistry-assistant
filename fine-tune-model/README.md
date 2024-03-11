@@ -44,7 +44,6 @@ curl -LO https://huggingface.co/second-state/Llama-2-13B-Chat-GGUF/resolve/main/
 
 I came up with 1700+ pairs of QAs for the chemistry subject. It is like the following in a [CSV file](train.csv).
 
-```
 Question | Answer
 ----- | -------
 What is unique about hydrogen? | It's the most abundant element in the universe, making up over 75% of all matter.
@@ -52,9 +51,10 @@ What is the main component of Jupiter? | Hydrogen is the main component of Jupit
 Can hydrogen be used as fuel? | Yes, hydrogen is used as rocket fuel. It can also power fuel cells to generate electricity.
 What is mercury's atomic number? | The atomic number of mercury is 80
 What is Mercury? | Mercury is a silver colored metal that is liquid at room temperature. It has an atomic number of 80 on the periodic table. It is toxic to humans.
-```
+
 
 > I used GPT-4 to help me come up many of these QAs.
+
 
 Then, I wrote a [Python script](convert.py) to convert each row in the CSV file into a sample QA in the Llama2 chat template format. Notice that each QA pair starts with `<SFT>` as an indicator for the fine-tuning program to start a sample. The result [train.txt](train.txt) file can now be used in fine-tuning.
 
