@@ -4,21 +4,24 @@ use std::env;
 use std::io::{BufReader, BufRead};
 use std::fs::File;
 use qdrant::*;
-use wasi_nn::{self, GraphExecutionContext};
+use wasmedge_wasi_nn::{
+    self, BackendError, Error, ExecutionTarget, GraphBuilder, GraphEncoding, GraphExecutionContext,
+    TensorType,
+};
 
 fn set_data_to_context(
     context: &mut GraphExecutionContext,
     data: Vec<u8>,
-) -> Result<(), wasi_nn::Error> {
-    context.set_input(0, wasi_nn::TensorType::U8, &[1], &data)
+) -> Result<(), Error> {
+    context.set_input(0, TensorType::U8, &[1], &data)
 }
 
 #[allow(dead_code)]
 fn set_metadata_to_context(
     context: &mut GraphExecutionContext,
     data: Vec<u8>,
-) -> Result<(), wasi_nn::Error> {
-    context.set_input(1, wasi_nn::TensorType::U8, &[1], &data)
+) -> Result<(), Error> {
+    context.set_input(1, TensorType::U8, &[1], &data)
 }
 
 fn get_data_from_context(context: &GraphExecutionContext, vector_size: usize, index: usize) -> String {
@@ -46,11 +49,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let file_name: &str = &args[4];
     let mut options = json!({});
     options["embedding"] = serde_json::Value::Bool(true);
-    options["ctx-size"] = serde_json::Value::from(vector_size);
-    let ctx_size = options["ctx-size"].as_u64().unwrap();
+    // options["ctx-size"] = serde_json::Value::from(vector_size);
+    // let ctx_size = options["ctx-size"].as_u64().unwrap();
 
     let graph =
-        wasi_nn::GraphBuilder::new(wasi_nn::GraphEncoding::Ggml, wasi_nn::ExecutionTarget::AUTO)
+        GraphBuilder::new(GraphEncoding::Ggml, ExecutionTarget::AUTO)
             .config(options.to_string())
             .build_from_cache(model_name)
             .expect("Create GraphBuilder Failed, please check the model name or options");
@@ -70,10 +73,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
             set_data_to_context(&mut context, current_section.as_bytes().to_vec()).unwrap();
             match context.compute() {
                 Ok(_) => (),
-                Err(wasi_nn::Error::BackendError(wasi_nn::BackendError::ContextFull)) => {
+                Err(Error::BackendError(BackendError::ContextFull)) => {
                     println!("\n[INFO] Context full");
                 }
-                Err(wasi_nn::Error::BackendError(wasi_nn::BackendError::PromptTooLong)) => {
+                Err(Error::BackendError(BackendError::PromptTooLong)) => {
                     println!("\n[INFO] Prompt too long");
                 }
                 Err(err) => {
@@ -83,7 +86,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
             let embd = get_embd_from_context(&context, vector_size);
 
             let mut embd_vec = Vec::<f32>::new();
-            for idx in 0..ctx_size as usize {
+            for idx in 0..vector_size as usize {
                 embd_vec.push(embd["embedding"][idx].as_f64().unwrap() as f32);
             }
 
@@ -104,7 +107,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
             // Start a new section
             current_section.clear();
         } else {
-            if current_section.len() < ctx_size as usize * 4 - line.len() {
+            if current_section.len() < vector_size as usize * 4 - line.len() {
                 current_section.push_str(&line);
                 current_section.push('\n');
             }

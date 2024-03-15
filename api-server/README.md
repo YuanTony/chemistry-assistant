@@ -31,15 +31,23 @@ rm chatbot-ui.tar.gz
 
 ## Start the API server
 
-
-Use the following command to start the API server for model file `chemistry-assistant-13b-q5_k_m.gguf` on the local computer's port `8080`. It connects to the `chemistry_book` collection of a local Qdrant vector store to search for related text for user questions in the prompt. The server is started as a background process.
-
+Use the following command to start the API server for model file `chemistry-assistant-13b-q5_k_m.gguf` on the local computer's port `8080`. It connects to the `chemistry_book` collection of a local Qdrant vector store to search for related text for user questions in the prompt. 
+The API server uses the `all-MiniLM-L6-v2-ggml-model-f16.gguf` model for computing embeddings.
+The server is started as a background process.
 
 ```
-nohup wasmedge --dir .:. --nn-preload default:GGML:AUTO:chemistry-assistant-13b-q5_k_m.gguf \
-    llama-api-server.wasm --prompt-template llama-2-chat --ctx-size 4096 --socket-addr 0.0.0.0:8080 \
-    --qdrant-url http://127.0.0.1:6333 --qdrant-collection-name chemistry_book --qdrant-limit 3 \
-    --log-prompts --log-stat &
+nohup wasmedge --dir .:. \
+  --nn-preload default:GGML:AUTO:chemistry-assistant-13b-q5_k_m.gguf \
+  --nn-preload embedding:GGML:AUTO:all-MiniLM-L6-v2-ggml-model-f16.gguf \
+  llama-api-server.wasm -p llama-2-chat \
+  --model-alias default,embedding \
+  --model-name chemistry-assistant-13b,all-minilm-l6-v2 \
+  --ctx-size 4096,256 \
+  --qdrant-url http://127.0.0.1:6333 \
+  --qdrant-collection-name "chemistry_book" \
+  --qdrant-limit 3 \
+  --qdrant-score-threshold 0.6 \
+  --log-prompts &
 ```
 
 You can now test the server by making OpenAI style web API calls to the `/v1/chat/completions` endpoint.

@@ -32,14 +32,14 @@ curl -X PUT 'http://localhost:6333/collections/chemistry_book' \
   -H 'Content-Type: application/json' \
   --data-raw '{
     "vectors": {
-      "size": 5120,
+      "size": 384,
       "distance": "Cosine",
       "on_disk": true
     }
   }'
 ```
 
-> Note: The 13b model has a vector size 5120. If you are using a 7b model, the vector size should be 4096.
+> We are using 384 dimentions for the embedding model `all-MiniLM-L6-v2`.
 
 Confirm that the collection is successfully created.
 
@@ -79,12 +79,18 @@ Next compile the application in this directory to Wasm bytecode.
 cargo build --target wasm32-wasi --release
 ```
 
+## Download a en embedding model
+
+```
+curl -LO https://huggingface.co/second-state/All-MiniLM-L6-v2-Embedding-GGUF/resolve/main/all-MiniLM-L6-v2-ggml-model-f16.gguf
+```
+
 ## Generate embeddings
 
 Now, we can run the Wasm app to generate embeddings from a text file [chemistry.txt](chemistry.txt) and save to the Qdrant `chemistry_book` collection.
 
 ```
 cp target/wasm32-wasi/release/create_embeddings.wasm .
-wasmedge --dir .:. --nn-preload default:GGML:AUTO:chemistry-assistant-13b-q5_k_m.gguf create_embeddings.wasm default chemistry_book 5120 chemistry.txt
+wasmedge --dir .:. --nn-preload embedding:GGML:AUTO:all-MiniLM-L6-v2-ggml-model-f16.gguf create_embeddings.wasm embedding chemistry_book 384 chemistry.txt
 ```
 
