@@ -19,9 +19,11 @@ I choose Qdrant as the vector database to store and manage the knowledge embeddi
 
 ```
 mkdir qdrant_storage
+mkdir qdrant_snapshots
 
 nohup sudo docker run -d -p 6333:6333 -p 6334:6334 \
     -v $(pwd)/qdrant_storage:/qdrant/storage:z \
+    -v $(pwd)/qdrant_snapshots:/qdrant/snapshots:z \
     qdrant/qdrant
 ```
 
@@ -51,6 +53,12 @@ Note: you can delete a collection using the following request.
 
 ```
 curl -X DELETE 'http://localhost:6333/collections/chemistry_book'
+```
+
+Note: you can create a snapshot of the collection as follows. The snapshot is a file in the `./qdrant_snapshots` directory, which can be shared across the Internet.
+
+```
+curl -X POST 'http://localhost:6333/collections/chemistry_book/snapshots'
 ```
 
 ## Install WasmEdge with GGML plugin
