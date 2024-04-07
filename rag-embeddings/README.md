@@ -1,6 +1,6 @@
 # Create a vector store for chemistry knowledge
 
-The fine-tuned model by itself is still insufficent. Especially for a small LLM (ours is only 13b compared to the 220b GPT3), it does not have the "space" to store all the "knowledge" from its training materials. LLMs often lack domain knowledge to accurately answer highly specific questions. A common technique to supplement domain knowledge to LLMs is through the RAG technique. It works like the following.
+LLMs often lack domain knowledge to accurately answer highly specific questions. A common technique to supplement domain knowledge to LLMs is through the RAG technique. It works like the following.
 
 1. The domain knowledge is segmented into chunks of text.
 2. Each text segment is turned into a numeric vector, aka an embedding, by the LLM. The embedding represents the LLM's "understanding" of the text.
@@ -101,4 +101,8 @@ Now, we can run the Wasm app to generate embeddings from a text file [chemistry.
 cp target/wasm32-wasi/release/create_embeddings.wasm .
 wasmedge --dir .:. --nn-preload embedding:GGML:AUTO:all-MiniLM-L6-v2-ggml-model-f16.gguf create_embeddings.wasm embedding chemistry_book 384 chemistry.txt
 ```
+
+Once you have the the vector collection with domain-specific knowledge, you can skip ahead to Step 3 of this tutorial to start an API server. But I recommend you to go through Step 2 first to create a finetuned LLM that is optimized for chemistry questions!
+
+
 
