@@ -87,7 +87,7 @@ Next compile the application in this directory to Wasm bytecode.
 cargo build --target wasm32-wasi --release
 ```
 
-## Download a en embedding model
+## Download an embedding model
 
 ```
 curl -LO https://huggingface.co/second-state/All-MiniLM-L6-v2-Embedding-GGUF/resolve/main/all-MiniLM-L6-v2-ggml-model-f16.gguf
