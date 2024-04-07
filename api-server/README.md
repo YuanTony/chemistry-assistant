@@ -50,6 +50,7 @@ nohup wasmedge --dir .:. \
   --model-alias default,embedding \
   --model-name chemistry-assistant-13b,all-minilm-l6-v2 \
   --ctx-size 4096,256 \
+  --rag-prompt "Use the following context to answer the question.\n----------------\n" \
   --log-prompts &
 ```
 
@@ -63,6 +64,7 @@ nohup wasmedge --dir .:. \
   --model-alias default,embedding \
   --model-name llama-2-13b-chat,all-minilm-l6-v2 \
   --ctx-size 4096,256 \
+  --rag-prompt "Use the following context to answer the question.\n----------------\n" \
   --log-prompts &
 ```
 
