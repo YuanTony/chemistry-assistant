@@ -1,9 +1,15 @@
-# Fine-tune an open-source LLM for the chemistry subject
+# Finetune an open-source LLM for the chemistry subject
+
+This is an optional step to finetune the LLM to better answer chemistry related questions. It works by "showing" a general LLM, i.e., a Llama2 13b chat model, examples of how a chemistry teacher might answer questions. It will improve the model's capability to understand and answer these domain-specific questions. It does take significant amount of computing power to go through the finetuning process. The example I showed below took a few days of computing time on a typical desktop PC. If you do not access to computing power, it is okay to skip this tutorial, or just download the model file I have finetuned.
+
+```
+curl -LO https://huggingface.co/juntaoyuan/chemistry-assistant-13b/resolve/main/chemistry-assistant-13b-q5_k_m.gguf
+```
 
 ## Build the finetune utility from llama.cpp
 
 The `finetune` utility in llama.cpp can work with quantitized GGUF files on CPUs, and hence dramatically reducing the hardware requirements and expen
-ses for fine-tuning LLMs.
+ses for finetuning LLMs.
 
 Checkout and download the llama.cpp source code.
 
@@ -60,7 +66,7 @@ Then, I wrote a [Python script](convert.py) to convert each row in the CSV file 
 
 Put the [train.txt](train.txt) file in the `llama.cpp/models` directory with the GGUF base model.
 
-## Fine-tune!
+## Finetune!
 
 Use the following command to start the fine-tuning process on your CPUs. I am putting it in the background so that it can run continuous now.
 It could several days or even a couple of weeks depending on how many CPUs you have.
