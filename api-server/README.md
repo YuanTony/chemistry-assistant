@@ -30,7 +30,7 @@ rm chatbot-ui.tar.gz
 
 ## Download the LLM model file
 
-If you have gone through the previous finetuning step, you should already have the `chemistry-assistant-13b-q5_k_m.gguf` file. If not, you could simply download the Llama2 13b chat model as follows.
+If you have gone through the previous finetuning step, you should already have the [`chemistry-assistant-13b-q5_k_m.gguf` file](https://huggingface.co/juntaoyuan/chemistry-assistant-13b/resolve/main/chemistry-assistant-13b-q5_k_m.gguf). If not, you could simply download the Llama2 13b chat model as follows.
 
 ```
 curl -LO https://huggingface.co/second-state/Llama-2-13B-Chat-GGUF/resolve/main/llama-2-13b-chat.Q5_K_M.gguf
