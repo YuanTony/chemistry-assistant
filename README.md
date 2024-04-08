@@ -6,7 +6,7 @@ In this project, I created a "chemistry teaching assistant" AI agent. The applic
 
 I further built a Discord bot to make the teaching assistant available in Discord, which is very popular among my peer middle school students. You can [join the Discord server](https://discord.gg/EuCkCNKu8c) and chat with the teaching assistant bot yourself or [add it to your own server](https://discord.com/oauth2/authorize?client_id=1213953089208320030&permissions=8&scope=bot)!
 
-Or, you can [try it on the web](https://major-halibut-great.ngrok-free.app/).
+Or, you can [try it on the web](https://0xb409673c9a640429c7e10ed24aa6e0bdcf1bbe41.gaianet.xyz/).
 
 In this repo, I provide open-source code and instructions on how I created this AI assistant.
 
