@@ -6,6 +6,8 @@ This is an optional step to finetune the LLM to better answer chemistry related 
 curl -LO https://huggingface.co/juntaoyuan/chemistry-assistant-13b/resolve/main/chemistry-assistant-13b-q5_k_m.gguf
 ```
 
+> Small LLMs often have problems understanding and following the context provided by the RAG search results. That is why finetuning those small LLMs is important. With finetuning, the LLMs become more sensitive to the RAG materials that are in its subject area.
+
 ## Build the finetune utility from llama.cpp
 
 The `finetune` utility in llama.cpp can work with quantitized GGUF files on CPUs, and hence dramatically reducing the hardware requirements and expen
@@ -27,7 +29,7 @@ cmake ..
 cmake --build . --config Release
 ```
 
-If you have Nvidia GPU and CUDA toolkit installed, you should build llama.cpp with CUDA support. Read more in "Author Insights" below.
+If you have Nvidia GPU and CUDA toolkit installed, you should build llama.cpp with CUDA support.
 
 ```
 mkdir build
@@ -58,9 +60,7 @@ Can hydrogen be used as fuel? | Yes, hydrogen is used as rocket fuel. It can als
 What is mercury's atomic number? | The atomic number of mercury is 80
 What is Mercury? | Mercury is a silver colored metal that is liquid at room temperature. It has an atomic number of 80 on the periodic table. It is toxic to humans.
 
-
 > I used GPT-4 to help me come up many of these QAs.
-
 
 Then, I wrote a [Python script](convert.py) to convert each row in the CSV file into a sample QA in the Llama2 chat template format. Notice that each QA pair starts with `<SFT>` as an indicator for the fine-tuning program to start a sample. The result [train.txt](train.txt) file can now be used in fine-tuning.
 
@@ -86,5 +86,9 @@ The fine-tuning process updates several layers of the LLM's neural network. Thos
 ../build/bin/export-lora --model-base llama-2-13b-chat.Q5_K_M.gguf --lora lora.bin --model-out chemistry-assistant-13b-q5_k_m.gguf
 ```
 
+The result is this file.
 
+```
+curl -LO https://huggingface.co/juntaoyuan/chemistry-assistant-13b/resolve/main/chemistry-assistant-13b-q5_k_m.gguf
+```
 
