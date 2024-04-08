@@ -11,8 +11,6 @@ LLMs often lack domain knowledge to accurately answer highly specific questions.
 
 This approach provides the LLM with the knowledge context and even source so that it can answer the question more accurately.
 
-> Small LLMs often have problems understanding and following the context provided by the RAG search results. That is why fine-tuning those small LLMs is so critical. With fine-tuning, the LLMs become more sensitive to the RAG materials that are in its subject area.
-
 ## Start the Qdrant vector database
 
 I choose Qdrant as the vector database to store and manage the knowledge embeddings. With Docker, you can easily run Qdrant locally on a personal computer.
