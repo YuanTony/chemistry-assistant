@@ -9,6 +9,41 @@ use wasmedge_wasi_nn::{
     TensorType,
 };
 
+async fn generate_upsert (context: &mut GraphExecutionContext, data: &str, client: &qdrant::Qdrant, id: u64, collection_name: &str, vector_size: usize) {
+    set_data_to_context(context, data.as_bytes().to_vec()).unwrap();
+    match context.compute() {
+        Ok(_) => (),
+        Err(Error::BackendError(BackendError::ContextFull)) => {
+            println!("\n[INFO] Context full");
+        }
+        Err(Error::BackendError(BackendError::PromptTooLong)) => {
+            println!("\n[INFO] Prompt too long");
+        }
+        Err(err) => {
+            println!("\n[ERROR] {}", err);
+        }
+    }
+    let embd = get_embd_from_context(&context, vector_size);
+
+    let mut embd_vec = Vec::<f32>::new();
+    for idx in 0..vector_size as usize {
+        embd_vec.push(embd["embedding"][idx].as_f64().unwrap() as f32);
+    }
+
+    println!("{} : ID={} Size={}", OffsetDateTime::now_utc(), id, embd_vec.len());
+
+    let mut points = Vec::<Point>::new();
+    points.push(Point{
+        id: PointId::Num(id), 
+        vector: embd_vec,
+        payload: json!({"source": data}).as_object().map(|m| m.to_owned()),
+    });
+
+    // Upsert each point (you can also batch points for upsert)
+    let r = client.upsert_points(collection_name, points).await;
+    println!("Upsert points result is {:?}", r);
+}
+
 fn set_data_to_context(
     context: &mut GraphExecutionContext,
     data: Vec<u8>,
@@ -70,49 +105,21 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     for line_result in reader.lines() {
         let line = line_result?;
         if line.trim().is_empty() && (!current_section.trim().is_empty()) {
-            set_data_to_context(&mut context, current_section.as_bytes().to_vec()).unwrap();
-            match context.compute() {
-                Ok(_) => (),
-                Err(Error::BackendError(BackendError::ContextFull)) => {
-                    println!("\n[INFO] Context full");
-                }
-                Err(Error::BackendError(BackendError::PromptTooLong)) => {
-                    println!("\n[INFO] Prompt too long");
-                }
-                Err(err) => {
-                    println!("\n[ERROR] {}", err);
-                }
-            }
-            let embd = get_embd_from_context(&context, vector_size);
-
-            let mut embd_vec = Vec::<f32>::new();
-            for idx in 0..vector_size as usize {
-                embd_vec.push(embd["embedding"][idx].as_f64().unwrap() as f32);
-            }
-
-            println!("{} : ID={} Size={}", OffsetDateTime::now_utc(), id, embd_vec.len());
-
-            let mut points = Vec::<Point>::new();
-            points.push(Point{
-                id: PointId::Num(id), 
-                vector: embd_vec,
-                payload: json!({"source": current_section}).as_object().map(|m| m.to_owned()),
-            });
+            generate_upsert(&mut context, &current_section, &client, id, collection_name, vector_size).await;
             id += 1;
-
-            // Upsert each point (you can also batch points for upsert)
-            let r = client.upsert_points(collection_name, points).await;
-            println!("Upsert points result is {:?}", r);
-
             // Start a new section
             current_section.clear();
         } else {
-            if current_section.len() < vector_size as usize * 4 - line.len() {
-                current_section.push_str(&line);
-                current_section.push('\n');
-            }
+            // We do not limit the size of the chunk. If it is over the model context size, we
+            // would want it to fail explicitly
+            current_section.push_str(&line);
+            current_section.push('\n');
         }
     }
 
+    // The last segment
+    if !current_section.trim().is_empty() {
+        generate_upsert(&mut context, &current_section, &client, id, collection_name, vector_size).await;
+    }
     Ok(())
 }

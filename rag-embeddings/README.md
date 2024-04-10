@@ -100,6 +100,18 @@ cp target/wasm32-wasi/release/create_embeddings.wasm .
 wasmedge --dir .:. --nn-preload embedding:GGML:AUTO:all-MiniLM-L6-v2-ggml-model-f16.gguf create_embeddings.wasm embedding chemistry_book 384 chemistry.txt
 ```
 
+After it is done, you can check the vectors and their associated payloads by their IDs. THe example below returns the first and last vectors in the `chemistry_book` collection.
+
+```
+curl 'http://localhost:6333/collections/chemistry_book/points' \
+  -H 'Content-Type: application/json' \
+  --data-raw '{
+    "ids": [0, 1231],
+    "with_payload": true,
+    "with_vector": false
+  }'
+```
+
 ## Next step
 
 Once you have the the vector collection with domain-specific knowledge, you can skip ahead to Step 3 of this tutorial to start an API server. But I recommend you to go through Step 2 first to create a finetuned LLM that is optimized for chemistry questions!
