@@ -77,6 +77,14 @@ nohup ../build/bin/finetune --model-base llama-2-13b-chat.Q5_K_M.gguf --lora-out
 
 You can check the process every a few hours in the `nohup.out` file. It will report `loss` for each iteration. You can stop the process when the `loss` goes consistently under `0.1`.
 
+**Note 1** If you have multiple CPUs (or CPU cores), you can speed up the finetuning process by adding a `-t` parameter to the above command to use more threads. For example, if you have 60 CPU cores, you could do `-t 60` to use all of them.
+
+**Note 2** If your finetuning process is interrupted, you can restart it from `checkpoint-250.gguf`. The next file it outputs is `checkpoint-260.gguf`.
+
+```
+nohup ../build/bin/finetune --model-base llama-2-13b-chat.Q5_K_M.gguf --checkpoint-in checkpoint-250.gguf --lora-out lora.bin --train-data train.txt --sample-start '<SFT>' --adam-iter 1024 &
+```
+
 
 ## Merge
 
@@ -90,5 +98,11 @@ The result is this file.
 
 ```
 curl -LO https://huggingface.co/juntaoyuan/chemistry-assistant-13b/resolve/main/chemistry-assistant-13b-q5_k_m.gguf
+```
+
+**Note 3** If you want to use a checkpoint to generate a `lora.bin` file, use the following command. This is needed when you believe the final `lora.bin` is an overfit.
+
+```
+../build/bin/finetune --model-base llama-2-13b-chat.Q5_K_M.gguf --checkpoint-in checkpoint-250.gguf --only-write-lora --lora-out lora.bin
 ```
 
