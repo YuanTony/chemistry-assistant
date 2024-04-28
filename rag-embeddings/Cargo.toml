@@ -12,3 +12,4 @@ url = "2.3"
 tokio_wasi = { version = "1", features = ["io-util", "fs", "net", "time", "rt", "macros"] }
 qdrant_rest_client = "0.0.2"
 wasmedge-wasi-nn = "0.7.0"
+clap = {version = "4.5.3", features = ["derive"]}
