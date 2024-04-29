@@ -132,7 +132,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let mut code_mode = false;
     for line_result in reader.lines() {
         let line = line_result?;
-        if let Some(_) = line.find("```") {
+        if line.trim().starts_with("```") {
             code_mode = !code_mode;
         }
         if line.trim().is_empty() && (!current_section.trim().is_empty()) && !code_mode {
