@@ -39,7 +39,7 @@ curl -X PUT 'http://localhost:6333/collections/chemistry_book' \
   }'
 ```
 
-> We are using 384 dimentions for the embedding model `all-MiniLM-L6-v2`.
+> We are using 384 dimensions for the embedding model `all-MiniLM-L6-v2`.
 
 Confirm that the collection is successfully created.
 
@@ -79,10 +79,17 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 rustup target add wasm32-wasi
 ```
 
+You also need the [clang compiler tools](https://clang.llvm.org/get_started.html) installed for TLS / SSL support.
+
+```
+# This is for Ubuntu Linux
+sudo apt install clang
+```
+
 Next compile the application in this directory to Wasm bytecode.
 
 ```
-cargo build --target wasm32-wasi --release
+RUSTFLAGS="--cfg wasmedge --cfg tokio_unstable" cargo build --target wasm32-wasi --release
 ```
 
 ## Download an embedding model
@@ -97,7 +104,9 @@ Now, we can run the Wasm app to generate embeddings from a text file [chemistry.
 
 ```
 cp target/wasm32-wasi/release/create_embeddings.wasm .
-wasmedge --dir .:. --nn-preload embedding:GGML:AUTO:all-MiniLM-L6-v2-ggml-model-f16.gguf create_embeddings.wasm embedding chemistry_book 384 chemistry.txt
+wasmedge --dir .:. \
+  --nn-preload embedding:GGML:AUTO:all-MiniLM-L6-v2-ggml-model-f16.gguf \
+  create_embeddings.wasm embedding chemistry_book 384 chemistry.txt
 ```
 
 After it is done, you can check the vectors and their associated payloads by their IDs. THe example below returns the first and last vectors in the `chemistry_book` collection.
@@ -110,6 +119,17 @@ curl 'http://localhost:6333/collections/chemistry_book/points' \
     "with_payload": true,
     "with_vector": false
   }'
+```
+
+You can also pass the following options to the program.
+
+* Using `-m` or `--maximum_context_length` to specify a context length in the CLI argument. That is to truncate and warn for each text segment that goes above the context length.
+* Using `-s` or `--start_vector_id` to specify the start vector ID in the CLI argument. This will allow us to run this app multiple times on multiple documents on the same vector collection.
+
+```
+wasmedge --dir .:. \
+  --nn-preload embedding:GGML:AUTO:all-MiniLM-L6-v2-ggml-model-f16.gguf \
+   create_embeddings.wasm embedding chemistry_book 384 chemistry.txt -s 5 -m 1024
 ```
 
 ## Next step
