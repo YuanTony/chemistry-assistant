@@ -140,7 +140,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
                 let maximum = maximum.trim().parse().unwrap();
                 if current_section.len() > maximum {
                     println!("\n [WARNING] Index: {} exceed maximum contex length limitation.", id);
-                    current_section = current_section[0..maximum].to_string();
+                    current_section = current_section.chars().take(maximum).collect();
                 }
             }
             generate_upsert(&mut context, &current_section, &client, id, collection_name, vector_size, start_vector_id).await;
@@ -161,7 +161,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
             let maximum = maximum.trim().parse().unwrap();
             if current_section.len() > maximum {
                 println!("\n [WARNING] Index: {} exceed maximum contex length limitation.", id);
-                current_section = current_section[0..maximum].to_string();
+                current_section = current_section.chars().take(maximum).collect();
             }
         }
         generate_upsert(&mut context, &current_section, &client, id, collection_name, vector_size, start_vector_id).await;
